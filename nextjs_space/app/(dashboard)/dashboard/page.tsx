@@ -7,7 +7,12 @@ import StatCard from '@/components/stat-card';
 import { formatUSD, formatDate, getDaysUntilExpiry, getExpiryStatus } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 
-const DashboardCharts = dynamic(() => import('@/components/dashboard-charts'), { ssr: false, loading: () => <div className="h-64 bg-white rounded-xl animate-pulse" /> });
+const DashboardCharts = dynamic(
+  () => import('@/components/dashboard-charts').catch(() => {
+    return { default: () => <div className="h-64 bg-white rounded-xl flex items-center justify-center text-gray-400">Error cargando gráficos. Recargue la página.</div> };
+  }),
+  { ssr: false, loading: () => <div className="h-64 bg-white rounded-xl animate-pulse" /> }
+);
 
 export default function DashboardPage() {
   const { data: session } = useSession() || {};

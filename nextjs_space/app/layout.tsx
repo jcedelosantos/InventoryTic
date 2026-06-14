@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Providers from './providers';
+import { ChunkLoadErrorHandler } from '@/components/chunk-load-error-handler';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script src="https://apps.abacus.ai/chatllm/appllm-lib.js" />
       </head>
       <body className={`${inter.className} bg-slate-50 min-h-screen`} suppressHydrationWarning>
+        <ChunkLoadErrorHandler />
         <Providers>{children}</Providers>
       </body>
     </html>
