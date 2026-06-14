@@ -1,0 +1,142 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/inventario_tic/nextjs_space/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("user")
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Equipment {
+  id            String   @id @default(cuid())
+  nombre        String
+  direccionIp   String?  @unique
+  fabricante    String?
+  direccionMac  String?  @unique
+  comentarios   String?  @db.Text
+  tipoEquipo    String?  @default("otro")
+  numeroSerie   String?
+  fechaCompra   DateTime?
+  garantia      DateTime?
+  estado        String   @default("activo")
+  responsable   String?
+  costoUsd      Float?   @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([estado])
+  @@index([tipoEquipo])
+}
+
+model License {
+  id            String   @id @default(cuid())
+  nombre        String
+  categoria     String?
+  proveedor     String?
+  fechaInicio   DateTime?
+  fechaVencimiento DateTime?
+  costoAnual    Float    @default(0)
+  responsable   String?
+  estado        String   @default("activa")
+  notas         String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([estado])
+  @@index([fechaVencimiento])
+}
+
+model MonthlyConsumption {
+  id            String   @id @default(cuid())
+  nombre        String
+  categoria     String?
+  costoMensual  Float    @default(0)
+  responsable   String?
+  proveedor     String?
+  notas         String?  @db.Text
+  estado        String   @default("activo")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ThirdPartySupport {
+  id            String   @id @default(cuid())
+  nombre        String
+  contacto      String?
+  telefono      String?
+  email         String?
+  servicios     String?  @db.Text
+  costoMensual  Float    @default(0)
+  costoAnual    Float    @default(0)
+  contrato      String?  @db.Text
+  estado        String   @default("activo")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  nombre        String
+  descripcion   String?  @db.Text
+  estado        String   @default("en_progreso")
+  responsable   String?
+  presupuesto   Float    @default(0)
+  avance        Int      @default(0)
+  fechaInicio   DateTime?
+  fechaFin      DateTime?
+  notas         String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([estado])
+}
