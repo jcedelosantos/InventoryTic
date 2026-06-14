@@ -46,7 +46,7 @@ export default function LoginPage() {
             <Shield className="w-9 h-9 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white">Inventario TIC</h1>
-          <p className="text-blue-200 mt-1">Sistema de Auditoría Tecnológica — Reverse</p>
+          <p className="text-blue-200 mt-1">Sistema de Auditoría Tecnológica — Cedanet Solutions</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-2xl p-8 space-y-5">

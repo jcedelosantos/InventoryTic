@@ -10,16 +10,16 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Inventario TIC - Reverse',
-    description: 'Sistema de gestión de inventario tecnológico y auditoría',
+    title: 'Inventario TIC - Cedanet Solutions',
+    description: 'Sistema de gestión de inventario tecnológico y auditoría por Cedanet Solutions',
     metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
     icons: {
       icon: '/favicon.svg',
       shortcut: '/favicon.svg',
     },
     openGraph: {
-      title: 'Inventario TIC - Reverse',
-      description: 'Sistema de gestión de inventario tecnológico y auditoría',
+      title: 'Inventario TIC - Cedanet Solutions',
+      description: 'Sistema de gestión de inventario tecnológico y auditoría por Cedanet Solutions',
       images: ['/og-image.png'],
     },
   };

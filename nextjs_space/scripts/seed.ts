@@ -19,6 +19,27 @@ async function main() {
     },
   });
 
+  // Client: Reverse
+  let reverseClient = await prisma.client.findFirst({ where: { nombre: 'Reverse' } });
+  if (!reverseClient) {
+    reverseClient = await prisma.client.create({
+      data: {
+        nombre: 'Reverse',
+        contacto: 'Administración Reverse',
+        email: 'admin@reverse.com',
+        activo: true,
+      },
+    });
+  }
+  const reverseId = reverseClient.id;
+
+  // Link existing unlinked records to Reverse
+  await prisma.equipment.updateMany({ where: { clientId: null }, data: { clientId: reverseId } });
+  await prisma.license.updateMany({ where: { clientId: null }, data: { clientId: reverseId } });
+  await prisma.monthlyConsumption.updateMany({ where: { clientId: null }, data: { clientId: reverseId } });
+  await prisma.thirdPartySupport.updateMany({ where: { clientId: null }, data: { clientId: reverseId } });
+  await prisma.project.updateMany({ where: { clientId: null }, data: { clientId: reverseId } });
+
   // Sample equipment from Excel analysis
   const equipmentData = [
     { nombre: 'ALMACEN01', direccionIp: '10.0.0.42', direccionMac: '68:51:34:C9:D0:E8', fabricante: null, tipoEquipo: 'computadora', estado: 'activo' },
@@ -39,7 +60,7 @@ async function main() {
     await prisma.equipment.upsert({
       where: { direccionIp: eq.direccionIp },
       update: {},
-      create: eq,
+      create: { ...eq, clientId: reverseId },
     });
   }
 
@@ -63,7 +84,7 @@ async function main() {
   for (const lic of licensesData) {
     const existing = await prisma.license.findFirst({ where: { nombre: lic.nombre } });
     if (!existing) {
-      await prisma.license.create({ data: { ...lic, estado: 'activa' } });
+      await prisma.license.create({ data: { ...lic, estado: 'activa', clientId: reverseId } });
     }
   }
 
@@ -77,7 +98,7 @@ async function main() {
   for (const cons of consumptionsData) {
     const existing = await prisma.monthlyConsumption.findFirst({ where: { nombre: cons.nombre } });
     if (!existing) {
-      await prisma.monthlyConsumption.create({ data: { ...cons, estado: 'activo' } });
+      await prisma.monthlyConsumption.create({ data: { ...cons, estado: 'activo', clientId: reverseId } });
     }
   }
 
@@ -91,7 +112,7 @@ async function main() {
   for (const sup of supportsData) {
     const existing = await prisma.thirdPartySupport.findFirst({ where: { nombre: sup.nombre } });
     if (!existing) {
-      await prisma.thirdPartySupport.create({ data: sup });
+      await prisma.thirdPartySupport.create({ data: { ...sup, clientId: reverseId } });
     }
   }
 
@@ -106,7 +127,7 @@ async function main() {
   for (const proj of projectsData) {
     const existing = await prisma.project.findFirst({ where: { nombre: proj.nombre } });
     if (!existing) {
-      await prisma.project.create({ data: proj });
+      await prisma.project.create({ data: { ...proj, clientId: reverseId } });
     }
   }
 

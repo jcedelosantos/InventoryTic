@@ -4,11 +4,15 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   try {
-    const items = await prisma.monthlyConsumption.findMany({ orderBy: { createdAt: 'desc' } });
+    const { searchParams } = new URL(request.url);
+    const clientId = searchParams.get('clientId') || '';
+    const where: any = {};
+    if (clientId) where.clientId = clientId;
+    const items = await prisma.monthlyConsumption.findMany({ where, orderBy: { createdAt: 'desc' } });
     return NextResponse.json(items);
   } catch (error: any) {
     console.error(error);

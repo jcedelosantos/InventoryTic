@@ -4,6 +4,7 @@ import { FolderKanban, Plus, Pencil, Trash2, Download } from 'lucide-react';
 import PageHeader from '@/components/page-header';
 import Modal from '@/components/modal';
 import { formatUSD, formatDate } from '@/lib/utils';
+import { useClient } from '@/contexts/client-context';
 import { toast } from 'sonner';
 
 const ESTADOS_PROYECTO = [
@@ -23,9 +24,12 @@ export default function ProyectosPage() {
   const [form, setForm] = useState<any>({ ...emptyForm });
   const [editId, setEditId] = useState<string | null>(null);
 
+  const { selectedClientId } = useClient();
   const fetchData = useCallback(() => {
-    fetch('/api/projects').then(r => r.json()).then(d => { setItems(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
-  }, []);
+    const params = new URLSearchParams();
+    if (selectedClientId) params.set('clientId', selectedClientId);
+    fetch(`/api/projects?${params}`).then(r => r.json()).then(d => { setItems(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
+  }, [selectedClientId]);
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,6 +39,7 @@ export default function ProyectosPage() {
       presupuesto: parseFloat(form?.presupuesto) || 0,
       avance: parseInt(form?.avance) || 0,
       fechaInicio: form?.fechaInicio ? new Date(form.fechaInicio).toISOString() : null,
+      clientId: selectedClientId || undefined,
       fechaFin: form?.fechaFin ? new Date(form.fechaFin).toISOString() : null,
     };
     const url = editId ? `/api/projects/${editId}` : '/api/projects';

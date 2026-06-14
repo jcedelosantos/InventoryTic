@@ -5,6 +5,7 @@ import PageHeader from '@/components/page-header';
 import DataTable from '@/components/data-table';
 import Modal from '@/components/modal';
 import { formatUSD, formatDate, getDaysUntilExpiry, getExpiryStatus } from '@/lib/utils';
+import { useClient } from '@/contexts/client-context';
 import { toast } from 'sonner';
 
 const emptyForm = {
@@ -19,9 +20,12 @@ export default function LicenciasPage() {
   const [form, setForm] = useState<any>({ ...emptyForm });
   const [editId, setEditId] = useState<string | null>(null);
 
+  const { selectedClientId } = useClient();
   const fetchData = useCallback(() => {
-    fetch('/api/licenses').then(r => r.json()).then(d => { setItems(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
-  }, []);
+    const params = new URLSearchParams();
+    if (selectedClientId) params.set('clientId', selectedClientId);
+    fetch(`/api/licenses?${params}`).then(r => r.json()).then(d => { setItems(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
+  }, [selectedClientId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -33,6 +37,7 @@ export default function LicenciasPage() {
         costoAnual: parseFloat(form?.costoAnual) || 0,
         fechaInicio: form?.fechaInicio ? new Date(form.fechaInicio).toISOString() : null,
         fechaVencimiento: form?.fechaVencimiento ? new Date(form.fechaVencimiento).toISOString() : null,
+        clientId: selectedClientId || undefined,
       };
       const url = editId ? `/api/licenses/${editId}` : '/api/licenses';
       const method = editId ? 'PUT' : 'POST';
@@ -61,8 +66,10 @@ export default function LicenciasPage() {
   };
 
   const handleExport = async (format: string) => {
-    const url = format === 'excel' ? '/api/export?modulo=licencias' : '/api/export-pdf';
-    const opts = format === 'excel' ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modulo: 'licencias' }) };
+    const ep = new URLSearchParams({ modulo: 'licencias' });
+    if (selectedClientId) ep.set('clientId', selectedClientId);
+    const url = format === 'excel' ? `/api/export?${ep}` : '/api/export-pdf';
+    const opts = format === 'excel' ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modulo: 'licencias', clientId: selectedClientId }) };
     const res = await fetch(url, opts);
     if (res.ok) { const blob = await res.blob(); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Licencias.${format === 'excel' ? 'xlsx' : 'pdf'}`; a.click(); }
   };

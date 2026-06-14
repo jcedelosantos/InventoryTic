@@ -5,6 +5,7 @@ import PageHeader from '@/components/page-header';
 import DataTable from '@/components/data-table';
 import Modal from '@/components/modal';
 import { formatUSD } from '@/lib/utils';
+import { useClient } from '@/contexts/client-context';
 import { toast } from 'sonner';
 
 const emptyForm = { nombre: '', categoria: '', costoMensual: 0, responsable: '', proveedor: '', notas: '', estado: 'activo' };
@@ -16,14 +17,17 @@ export default function ConsumosPage() {
   const [form, setForm] = useState<any>({ ...emptyForm });
   const [editId, setEditId] = useState<string | null>(null);
 
+  const { selectedClientId } = useClient();
   const fetchData = useCallback(() => {
-    fetch('/api/consumptions').then(r => r.json()).then(d => { setItems(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
-  }, []);
+    const params = new URLSearchParams();
+    if (selectedClientId) params.set('clientId', selectedClientId);
+    fetch(`/api/consumptions?${params}`).then(r => r.json()).then(d => { setItems(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
+  }, [selectedClientId]);
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const body = { ...form, costoMensual: parseFloat(form?.costoMensual) || 0 };
+    const body = { ...form, costoMensual: parseFloat(form?.costoMensual) || 0, clientId: selectedClientId || undefined };
     const url = editId ? `/api/consumptions/${editId}` : '/api/consumptions';
     const res = await fetch(url, { method: editId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (!res.ok) { toast.error('Error'); return; }

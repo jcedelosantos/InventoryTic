@@ -4,17 +4,20 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   try {
+    const { searchParams } = new URL(request.url);
+    const clientId = searchParams.get('clientId') || '';
+    const where: any = clientId ? { clientId } : {};
     const [equipmentCount, equipment, licenses, consumptions, supports, projects] = await Promise.all([
-      prisma.equipment.count(),
-      prisma.equipment.findMany({ select: { costoUsd: true, tipoEquipo: true, estado: true } }),
-      prisma.license.findMany(),
-      prisma.monthlyConsumption.findMany(),
-      prisma.thirdPartySupport.findMany(),
-      prisma.project.findMany(),
+      prisma.equipment.count({ where }),
+      prisma.equipment.findMany({ where, select: { costoUsd: true, tipoEquipo: true, estado: true } }),
+      prisma.license.findMany({ where }),
+      prisma.monthlyConsumption.findMany({ where }),
+      prisma.thirdPartySupport.findMany({ where }),
+      prisma.project.findMany({ where }),
     ]);
 
     const totalEquipment = equipment?.reduce((s: number, e: any) => s + (e?.costoUsd ?? 0), 0) ?? 0;

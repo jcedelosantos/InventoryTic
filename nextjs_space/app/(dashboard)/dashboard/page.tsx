@@ -5,6 +5,7 @@ import { LayoutDashboard, Monitor, KeyRound, CreditCard, Headphones, FolderKanba
 import PageHeader from '@/components/page-header';
 import StatCard from '@/components/stat-card';
 import { formatUSD, formatDate, getDaysUntilExpiry, getExpiryStatus } from '@/lib/utils';
+import { useClient } from '@/contexts/client-context';
 import dynamic from 'next/dynamic';
 
 const DashboardCharts = dynamic(
@@ -16,16 +17,20 @@ const DashboardCharts = dynamic(
 
 export default function DashboardPage() {
   const { data: session } = useSession() || {};
+  const { selectedClientId, selectedClient } = useClient();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    fetch('/api/dashboard')
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (selectedClientId) params.set('clientId', selectedClientId);
+    fetch(`/api/dashboard?${params}`)
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
-  }, []);
+  }, [selectedClientId]);
 
   const handleExportPDF = async () => {
     setExporting(true);
@@ -33,14 +38,14 @@ export default function DashboardPage() {
       const res = await fetch('/api/export-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ modulo: 'todos' }),
+        body: JSON.stringify({ modulo: 'todos', clientId: selectedClientId }),
       });
       if (res.ok) {
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Reporte_TIC_Reverse.pdf`;
+        a.download = `Reporte_TIC_${selectedClient?.nombre ?? 'General'}.pdf`;
         a.click();
         URL.revokeObjectURL(url);
       }
@@ -50,7 +55,9 @@ export default function DashboardPage() {
 
   const handleExportExcel = async () => {
     try {
-      const res = await fetch('/api/export?modulo=equipos');
+      const params = new URLSearchParams({ modulo: 'equipos' });
+      if (selectedClientId) params.set('clientId', selectedClientId);
+      const res = await fetch(`/api/export?${params}`);
       if (res.ok) {
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
@@ -81,7 +88,7 @@ export default function DashboardPage() {
     <div className="space-y-6 max-w-[1200px]">
       <PageHeader
         title="Dashboard"
-        description={`Resumen ejecutivo del inventario tecnológico — Bienvenido, ${session?.user?.name ?? 'Administrador'}`}
+        description={`${selectedClient ? selectedClient.nombre : 'Todos los clientes'} — Bienvenido, ${session?.user?.name ?? 'Administrador'}`}
         icon={LayoutDashboard}
         actions={
           <div className="flex gap-2">

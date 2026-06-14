@@ -23,8 +23,10 @@ export async function GET(request: Request) {
         { numeroSerie: { contains: search, mode: 'insensitive' } },
       ];
     }
+    const clientId = searchParams.get('clientId') || '';
     if (tipo) where.tipoEquipo = tipo;
     if (estado) where.estado = estado;
+    if (clientId) where.clientId = clientId;
     const items = await prisma.equipment.findMany({ where, orderBy: { createdAt: 'desc' } });
     return NextResponse.json(items);
   } catch (error: any) {

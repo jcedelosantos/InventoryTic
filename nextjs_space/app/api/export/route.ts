@@ -11,13 +11,15 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const modulo = searchParams.get('modulo') || 'equipos';
+    const clientId = searchParams.get('clientId') || '';
+    const where: any = clientId ? { clientId } : {};
 
     let data: any[] = [];
     let sheetName = 'Datos';
 
     switch (modulo) {
       case 'equipos': {
-        const items = await prisma.equipment.findMany({ orderBy: { createdAt: 'desc' } });
+        const items = await prisma.equipment.findMany({ where, orderBy: { createdAt: 'desc' } });
         sheetName = 'Equipos';
         data = (items ?? []).map((i: any) => ({
           'Nombre': i?.nombre ?? '',
@@ -34,7 +36,7 @@ export async function GET(request: Request) {
         break;
       }
       case 'licencias': {
-        const items = await prisma.license.findMany({ orderBy: { fechaVencimiento: 'asc' } });
+        const items = await prisma.license.findMany({ where, orderBy: { fechaVencimiento: 'asc' } });
         sheetName = 'Licencias';
         data = (items ?? []).map((i: any) => ({
           'Nombre': i?.nombre ?? '',
@@ -49,7 +51,7 @@ export async function GET(request: Request) {
         break;
       }
       case 'consumos': {
-        const items = await prisma.monthlyConsumption.findMany();
+        const items = await prisma.monthlyConsumption.findMany({ where });
         sheetName = 'Consumos Mensuales';
         data = (items ?? []).map((i: any) => ({
           'Nombre': i?.nombre ?? '',
@@ -62,7 +64,7 @@ export async function GET(request: Request) {
         break;
       }
       case 'soportes': {
-        const items = await prisma.thirdPartySupport.findMany();
+        const items = await prisma.thirdPartySupport.findMany({ where });
         sheetName = 'Soportes';
         data = (items ?? []).map((i: any) => ({
           'Nombre': i?.nombre ?? '',
@@ -77,7 +79,7 @@ export async function GET(request: Request) {
         break;
       }
       case 'proyectos': {
-        const items = await prisma.project.findMany();
+        const items = await prisma.project.findMany({ where });
         sheetName = 'Proyectos';
         data = (items ?? []).map((i: any) => ({
           'Nombre': i?.nombre ?? '',

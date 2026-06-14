@@ -5,6 +5,7 @@ import PageHeader from '@/components/page-header';
 import DataTable from '@/components/data-table';
 import Modal from '@/components/modal';
 import { formatUSD, formatDate } from '@/lib/utils';
+import { useClient } from '@/contexts/client-context';
 import { toast } from 'sonner';
 
 const TIPOS = [
@@ -40,6 +41,7 @@ export default function EquiposPage() {
   const [form, setForm] = useState<any>({ ...emptyForm });
   const [editId, setEditId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const { selectedClientId, selectedClient } = useClient();
   const [filterTipo, setFilterTipo] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
 
@@ -48,11 +50,12 @@ export default function EquiposPage() {
     if (search) params.set('search', search);
     if (filterTipo) params.set('tipo', filterTipo);
     if (filterEstado) params.set('estado', filterEstado);
+    if (selectedClientId) params.set('clientId', selectedClientId);
     fetch(`/api/equipment?${params}`)
       .then(r => r.json())
       .then(d => { setItems(Array.isArray(d) ? d : []); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [search, filterTipo, filterEstado]);
+  }, [search, filterTipo, filterEstado, selectedClientId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -66,6 +69,7 @@ export default function EquiposPage() {
         garantia: form?.garantia ? new Date(form.garantia).toISOString() : null,
         direccionIp: form?.direccionIp || null,
         direccionMac: form?.direccionMac || null,
+        clientId: selectedClientId || undefined,
       };
       const url = editId ? `/api/equipment/${editId}` : '/api/equipment';
       const method = editId ? 'PUT' : 'POST';
@@ -114,6 +118,7 @@ export default function EquiposPage() {
     if (!file) { toast.error('Selecciona un archivo'); return; }
     const formData = new FormData();
     formData.append('file', file);
+    if (selectedClientId) formData.append('clientId', selectedClientId);
     try {
       const res = await fetch('/api/import', { method: 'POST', body: formData });
       const data = await res.json();
@@ -128,13 +133,15 @@ export default function EquiposPage() {
   const handleExport = async (format: string) => {
     try {
       if (format === 'excel') {
-        const res = await fetch('/api/export?modulo=equipos');
+        const ep = new URLSearchParams({ modulo: 'equipos' });
+        if (selectedClientId) ep.set('clientId', selectedClientId);
+        const res = await fetch(`/api/export?${ep}`);
         if (res.ok) {
           const blob = await res.blob();
           const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Equipos.xlsx'; a.click();
         }
       } else {
-        const res = await fetch('/api/export-pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modulo: 'equipos' }) });
+        const res = await fetch('/api/export-pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modulo: 'equipos', clientId: selectedClientId }) });
         if (res.ok) {
           const blob = await res.blob();
           const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Equipos.pdf'; a.click();

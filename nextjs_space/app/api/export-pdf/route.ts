@@ -8,14 +8,17 @@ export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   try {
-    const { modulo } = await request.json();
-    const [equipment, licenses, consumptions, supports, projects] = await Promise.all([
-      prisma.equipment.findMany(),
-      prisma.license.findMany(),
-      prisma.monthlyConsumption.findMany(),
-      prisma.thirdPartySupport.findMany(),
-      prisma.project.findMany(),
+    const { modulo, clientId } = await request.json();
+    const where: any = clientId ? { clientId } : {};
+    const [equipment, licenses, consumptions, supports, projects, client] = await Promise.all([
+      prisma.equipment.findMany({ where }),
+      prisma.license.findMany({ where }),
+      prisma.monthlyConsumption.findMany({ where }),
+      prisma.thirdPartySupport.findMany({ where }),
+      prisma.project.findMany({ where }),
+      clientId ? prisma.client.findUnique({ where: { id: clientId } }) : null,
     ]);
+    const clientName = client?.nombre ?? 'Todos los Clientes';
 
     const totalEquip = (equipment ?? []).reduce((s: number, e: any) => s + (e?.costoUsd ?? 0), 0);
     const totalLic = (licenses ?? []).reduce((s: number, l: any) => s + (l?.costoAnual ?? 0), 0);
@@ -42,7 +45,7 @@ export async function POST(request: Request) {
     </style></head><body>`;
 
     html += `<h1>Reporte de Inventario Tecnológico</h1>`;
-    html += `<div class="header-info"><strong>Cliente:</strong> Reverse | <strong>Fecha:</strong> ${new Date().toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' })} | <strong>Moneda:</strong> USD</div>`;
+    html += `<div class="header-info"><strong>Elaborado por:</strong> Cedanet Solutions | <strong>Cliente:</strong> ${clientName} | <strong>Fecha:</strong> ${new Date().toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' })} | <strong>Moneda:</strong> USD</div>`;
 
     html += `<div class="summary-box">`;
     html += `<h2 style="margin-top:0;border:none;">Resumen de Gastos Anuales</h2>`;
@@ -126,7 +129,7 @@ export async function POST(request: Request) {
         return new NextResponse(pdfBuffer, {
           headers: {
             'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="Reporte_TIC_Reverse_${new Date().toISOString().split('T')[0]}.pdf"`,
+            'Content-Disposition': `attachment; filename="Reporte_TIC_${clientName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf"`,
           },
         });
       }
