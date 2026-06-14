@@ -28,7 +28,7 @@ export async function GET(request: Request) {
           'Estado': i?.estado ?? '',
           'Responsable': i?.responsable ?? '',
           'Costo USD': i?.costoUsd ?? 0,
-          'Número de Serie': i?.numeroSerie ?? '',
+          'Serial / SN': i?.numeroSerie ?? '',
           'Comentarios': i?.comentarios ?? '',
         }));
         break;

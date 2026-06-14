@@ -55,9 +55,9 @@ export async function POST(request: Request) {
     html += `</div>`;
 
     if (!modulo || modulo === 'todos' || modulo === 'equipos') {
-      html += `<h2>Equipos Tecnológicos</h2><table><tr><th>Nombre</th><th>IP</th><th>MAC</th><th>Fabricante</th><th>Tipo</th><th>Estado</th><th>Costo</th></tr>`;
+      html += `<h2>Equipos Tecnológicos</h2><table><tr><th>Nombre</th><th>Serial / SN</th><th>IP</th><th>MAC</th><th>Fabricante</th><th>Tipo</th><th>Estado</th><th>Costo</th></tr>`;
       (equipment ?? []).forEach((e: any) => {
-        html += `<tr><td>${e?.nombre ?? ''}</td><td>${e?.direccionIp ?? ''}</td><td>${e?.direccionMac ?? ''}</td><td>${e?.fabricante ?? ''}</td><td>${e?.tipoEquipo ?? ''}</td><td>${e?.estado ?? ''}</td><td>${fmtUSD(e?.costoUsd ?? 0)}</td></tr>`;
+        html += `<tr><td>${e?.nombre ?? ''}</td><td>${e?.numeroSerie ?? '-'}</td><td>${e?.direccionIp ?? ''}</td><td>${e?.direccionMac ?? ''}</td><td>${e?.fabricante ?? ''}</td><td>${e?.tipoEquipo ?? ''}</td><td>${e?.estado ?? ''}</td><td>${fmtUSD(e?.costoUsd ?? 0)}</td></tr>`;
       });
       html += `</table>`;
     }

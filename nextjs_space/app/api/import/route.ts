@@ -31,6 +31,7 @@ export async function POST(request: Request) {
         const fabricante = row?.['Fabricante'] ?? row?.['fabricante'] ?? null;
         const mac = row?.['Dirección MAC'] ?? row?.['direccion_mac'] ?? row?.['MAC'] ?? row?.['mac'] ?? null;
         const comentarios = row?.['Comentarios'] ?? row?.['comentarios'] ?? null;
+        const serial = row?.['Serial'] ?? row?.['serial'] ?? row?.['SN'] ?? row?.['sn'] ?? row?.['Serial / SN'] ?? row?.['Número de Serie'] ?? row?.['numero_serie'] ?? null;
 
         if (!nombre && !ip) { skipped++; continue; }
 
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
             fabricante: fabricante ? String(fabricante) : null,
             direccionMac: mac ? String(mac) : null,
             comentarios: comentarios ? String(comentarios) : null,
+            numeroSerie: serial ? String(serial) : null,
             tipoEquipo: inferDeviceType(fabricante),
             estado: 'activo',
           },

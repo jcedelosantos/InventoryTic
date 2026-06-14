@@ -20,6 +20,7 @@ export async function GET(request: Request) {
         { fabricante: { contains: search, mode: 'insensitive' } },
         { direccionMac: { contains: search, mode: 'insensitive' } },
         { responsable: { contains: search, mode: 'insensitive' } },
+        { numeroSerie: { contains: search, mode: 'insensitive' } },
       ];
     }
     if (tipo) where.tipoEquipo = tipo;
